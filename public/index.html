@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Learning Hub</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .lessons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .lesson-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .lesson-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+        }
+
+        .lesson-card h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .lesson-card .features {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .lesson-card .features li {
+            padding: 5px 0;
+            color: #555;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .lesson-card .features li:before {
+            content: "✓";
+            color: #28a745;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .status h3 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .socket-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .socket-status.connected {
+            background: #28a745;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .user-count {
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Socket.IO Learning Hub</h1>
+            <p>Master real-time communication from basics to advanced features</p>
+        </div>
+
+        <div class="content">
+            <div class="status">
+                <h3>Server Status</h3>
+                <div>
+                    <span class="socket-status" id="socketStatus"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+                <div class="user-count">
+                    <span id="userCount">0</span> users online
+                </div>
+            </div>
+
+            <div class="lessons-grid">
+                <a href="/lesson1" class="lesson-card">
+                    <h3>📚 Lesson 1: Basic Events</h3>
+                    <p>Learn the fundamentals of Socket.IO connections and basic event handling.</p>
+                    <ul class="features">
+                        <li>Socket connection setup</li>
+                        <li>Basic emit and listen</li>
+                        <li>One-to-one communication</li>
+                        <li>Event handling patterns</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+
+                <a href="/lesson2" class="lesson-card">
+                    <h3>📢 Lesson 2: Broadcasting</h3>
+                    <p>Master broadcasting messages to multiple clients and different broadcasting patterns.</p>
+                    <ul class="features">
+                        <li>Broadcast to all users</li>
+                        <li>Broadcast to others only</li>
+                        <li>Message broadcasting patterns</li>
+                        <li>Real-time updates</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+
+                <a href="/lesson3" class="lesson-card">
+                    <h3>👥 Lesson 3: User Management</h3>
+                    <p>Learn how to manage users, track connections, and handle user states.</p>
+                    <ul class="features">
+                        <li>User registration system</li>
+                        <li>Connection tracking</li>
+                        <li>User presence indicators</li>
+                        <li>Disconnection handling</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+
+                <a href="/lesson4" class="lesson-card">
+                    <h3>💬 Lesson 4: Private Chat</h3>
+                    <p>Build a complete private messaging system with user-to-user communication.</p>
+                    <ul class="features">
+                        <li>Private messaging</li>
+                        <li>User lookup system</li>
+                        <li>Message delivery confirmation</li>
+                        <li>Error handling</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+
+                <a href="/lesson5" class="lesson-card">
+                    <h3>🚪 Lesson 5: Group Chat (Rooms)</h3>
+                    <p>Create group chat functionality using Socket.IO rooms and advanced features.</p>
+                    <ul class="features">
+                        <li>Room-based messaging</li>
+                        <li>Join/leave room functionality</li>
+                        <li>Room-specific events</li>
+                        <li>Multi-room support</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+
+                <a href="/lesson6" class="lesson-card">
+                    <h3>⌨️ Lesson 6: Advanced Features</h3>
+                    <p>Explore advanced Socket.IO features like typing indicators and real-time notifications.</p>
+                    <ul class="features">
+                        <li>Typing indicators</li>
+                        <li>Real-time notifications</li>
+                        <li>Message timestamps</li>
+                        <li>Advanced event handling</li>
+                    </ul>
+                    <div class="btn">Start Learning</div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const socketStatus = document.getElementById('socketStatus');
+        const connectionText = document.getElementById('connectionText');
+        const userCount = document.getElementById('userCount');
+
+        // Connection status handling
+        socket.on('connect', () => {
+            socketStatus.classList.add('connected');
+            connectionText.textContent = 'Connected to server';
+            console.log('✅ Connected to Socket.IO server');
+        });
+
+        socket.on('disconnect', () => {
+            socketStatus.classList.remove('connected');
+            connectionText.textContent = 'Disconnected from server';
+            console.log('❌ Disconnected from Socket.IO server');
+        });
+
+        socket.on('connect_error', (error) => {
+            socketStatus.classList.remove('connected');
+            connectionText.textContent = 'Connection failed';
+            console.log('❌ Connection error:', error);
+        });
+
+        // User count updates
+        socket.on('user count', (count) => {
+            userCount.textContent = count;
+        });
+
+        // Auto-reconnect handling
+        socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Reconnected after ${attemptNumber} attempts`);
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Attempting to reconnect... (${attemptNumber})`);
+        });
+    </script>
+</body>
+</html>

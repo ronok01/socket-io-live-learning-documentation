@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Socket.IO Chat</title>
+</head>
+<body>
+    <h1>Socket.IO Chat</h1>
+    <form id="form" action="">
+        <input id="m" autocomplete="off" /><button>Send</button>
+    </form>
+    <ul id="messages"></ul>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io(); // Connect to the server
+
+        // Send a message
+        document.getElementById('form').onsubmit = function(e) {
+            e.preventDefault(); // Prevent form submission
+            var msg = document.getElementById('m').value;
+            socket.emit('chat message', msg); // Send the message to the server
+            document.getElementById('m').value = ''; // Clear the input
+            return false;
+        };
+
+        // Receive and display the message
+        socket.on('chat message', function(msg) {
+            var item = document.createElement('li');
+            item.textContent = msg;
+            document.getElementById('messages').appendChild(item);
+        });
+    </script>
+</body>
+</html>

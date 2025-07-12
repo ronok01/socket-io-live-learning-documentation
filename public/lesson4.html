@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 4: Private Chat - Socket.IO Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .lesson-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .lesson-section h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+            color: #e2e8f0;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .code-block .string {
+            color: #a7f3d0;
+        }
+
+        .code-block .keyword {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .code-block .function {
+            color: #60a5fa;
+        }
+
+        .code-block .number {
+            color: #f472b6;
+        }
+
+        .code-block .operator {
+            color: #e2e8f0;
+        }
+
+        .demo-section {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .demo-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .message.sent {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .message.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.system {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .message.private {
+            background: #e2e3e5;
+            color: #383d41;
+            border-left: 4px solid #6c757d;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .concept-box {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .concept-box h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .concept-box ul {
+            margin-left: 20px;
+        }
+
+        .concept-box li {
+            margin-bottom: 5px;
+            color: #155724;
+        }
+
+        .chat-interface {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .chat-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-header h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .chat-form {
+            display: grid;
+            grid-template-columns: 1fr 2fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .chat-messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message-item {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .message-item.sent {
+            background: #d4edda;
+            color: #155724;
+            margin-left: 20%;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message-item.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            margin-right: 20%;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-item .sender {
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .message-item .time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .users-panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .users-panel h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .user-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .user-item:hover {
+            background: #e9ecef;
+        }
+
+        .user-item.selected {
+            background: #667eea;
+            color: white;
+        }
+
+        .registration-form {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .registration-form h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-row .input-group {
+            flex: 1;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💬 Lesson 4: Private Chat</h1>
+            <p>Build a complete private messaging system with user-to-user communication</p>
+        </div>
+
+        <div class="nav">
+            <a href="/">← Back to Learning Hub</a> | 
+            <a href="/lesson3">← Previous Lesson</a>
+        </div>
+
+        <div class="content">
+            <div class="lesson-section">
+                <h3>🎯 What You'll Learn</h3>
+                <p>In this lesson, you'll build a complete private messaging system:</p>
+                <ul>
+                    <li>How to send private messages between users</li>
+                    <li>User lookup and recipient targeting</li>
+                    <li>Message delivery confirmation</li>
+                    <li>Error handling for offline users</li>
+                </ul>
+            </div>
+
+            <div class="concept-box">
+                <h4>🔑 Private Messaging Concepts</h4>
+                <ul>
+                    <li><strong>Direct Messaging:</strong> Messages sent from one user to another</li>
+                    <li><strong>User Lookup:</strong> Finding recipients by username</li>
+                    <li><strong>Message Routing:</strong> Sending messages to specific socket connections</li>
+                    <li><strong>Delivery Confirmation:</strong> Confirming messages were sent successfully</li>
+                </ul>
+            </div>
+
+            <div class="registration-form">
+                <h4>👤 User Registration</h4>
+                <p>Register with a username to start private messaging:</p>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" placeholder="Enter your username...">
+                    </div>
+                    <button class="btn btn-success" onclick="registerUser()">Register</button>
+                </div>
+                <div id="registrationStatus"></div>
+            </div>
+
+            <div class="chat-interface">
+                <div class="chat-header">
+                    <h4>💬 Private Chat Interface</h4>
+                    <p>Select a user from the list and start a private conversation</p>
+                </div>
+
+                <div class="users-panel">
+                    <h5>👥 Online Users</h5>
+                    <div id="usersList">
+                        <p style="color: #666; text-align: center;">No users online</p>
+                    </div>
+                </div>
+
+                <div class="chat-form">
+                    <div class="input-group">
+                        <label for="recipient">To:</label>
+                        <select id="recipient">
+                            <option value="">Select recipient...</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="privateMessage">Message:</label>
+                        <input type="text" id="privateMessage" placeholder="Type your private message...">
+                    </div>
+                    <button class="btn" onclick="sendPrivateMessage()">Send</button>
+                </div>
+
+                <div class="chat-messages" id="chatMessages"></div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>📤 Sending Private Messages</h3>
+                <p>Learn how to send messages to specific users:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Send a private message</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'private message'</span>, {
+    <span class="keyword">to</span>: <span class="string">'recipientUsername'</span>,
+    <span class="keyword">message</span>: <span class="string">'Hello! This is a private message.'</span>
+});
+
+<span class="comment">// Server-side: Handle private messaging</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'private message'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">to</span>, <span class="keyword">message</span> } = <span class="keyword">data</span>;
+    <span class="keyword">const</span> <span class="keyword">sender</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    
+    <span class="keyword">if</span> (!<span class="keyword">sender</span>) {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">'Please register first!'</span> });
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="comment">// Find recipient by username</span>
+    <span class="keyword">const</span> <span class="keyword">recipient</span> = <span class="function">Object</span>.<span class="function">values</span>(<span class="keyword">users</span>).<span class="function">find</span>(<span class="keyword">user</span> => <span class="keyword">user</span>.<span class="keyword">username</span> === <span class="keyword">to</span>);
+    
+    <span class="keyword">if</span> (<span class="keyword">recipient</span>) {
+        <span class="comment">// Send to recipient</span>
+        <span class="function">io</span>.<span class="function">to</span>(<span class="keyword">recipient</span>.<span class="keyword">id</span>).<span class="function">emit</span>(<span class="string">'private message'</span>, {
+            <span class="keyword">from</span>: <span class="keyword">sender</span>.<span class="keyword">username</span>,
+            <span class="keyword">message</span>: <span class="keyword">message</span>,
+            <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+        });
+        
+        <span class="comment">// Send confirmation to sender</span>
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'private message sent'</span>, {
+            <span class="keyword">to</span>: <span class="keyword">to</span>,
+            <span class="keyword">message</span>: <span class="keyword">message</span>,
+            <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+        });
+    } <span class="keyword">else</span> {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">`User ${to} not found or not online`</span> });
+    }
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Private Messaging Demo</h4>
+                    <p>Try these scenarios:</p>
+                    <ul style="margin: 15px 0; color: #666;">
+                        <li>Register with different usernames in multiple tabs</li>
+                        <li>Select a recipient from the dropdown</li>
+                        <li>Send private messages between users</li>
+                        <li>Try sending to a non-existent user</li>
+                    </ul>
+                    <div class="messages" id="demoMessages"></div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>📥 Receiving Private Messages</h3>
+                <p>Understanding how to handle incoming private messages:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Listen for private messages</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'private message'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">from</span>, <span class="keyword">message</span>, <span class="keyword">timestamp</span> } = <span class="keyword">data</span>;
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">`Private message from ${from}: ${message}`</span>);
+    
+    <span class="comment">// Display the message in your chat interface</span>
+    <span class="function">displayPrivateMessage</span>(<span class="keyword">from</span>, <span class="keyword">message</span>, <span class="keyword">timestamp</span>, <span class="string">'received'</span>);
+});
+
+<span class="comment">// Client-side: Listen for message confirmation</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'private message sent'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">to</span>, <span class="keyword">message</span>, <span class="keyword">timestamp</span> } = <span class="keyword">data</span>;
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">`Message sent to ${to}: ${message}`</span>);
+    
+    <span class="comment">// Display the message in your chat interface</span>
+    <span class="function">displayPrivateMessage</span>(<span class="keyword">to</span>, <span class="keyword">message</span>, <span class="keyword">timestamp</span>, <span class="string">'sent'</span>);
+});
+
+<span class="comment">// Client-side: Handle errors</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'error'</span>, (<span class="keyword">data</span>) => {
+    <span class="function">console</span>.<span class="function">error</span>(<span class="string">'Error:'</span>, <span class="keyword">data</span>.<span class="keyword">message</span>);
+    <span class="comment">// Display error message to user</span>
+});</code>
+                </div>
+
+                <div class="concept-box">
+                    <h4>💡 Private Messaging Best Practices</h4>
+                    <ul>
+                        <li><strong>User Validation:</strong> Always check if sender is registered</li>
+                        <li><strong>Recipient Lookup:</strong> Find users by username, not socket ID</li>
+                        <li><strong>Error Handling:</strong> Provide clear feedback for failed messages</li>
+                        <li><strong>Message Confirmation:</strong> Confirm successful message delivery</li>
+                        <li><strong>Security:</strong> Validate message content and sender permissions</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🔍 Message Routing Logic</h3>
+                <p>Understanding how messages are routed to specific users:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Server-side: Message routing process</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'private message'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">to</span>, <span class="keyword">message</span> } = <span class="keyword">data</span>;
+    <span class="keyword">const</span> <span class="keyword">sender</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    
+    <span class="comment">// Step 1: Validate sender</span>
+    <span class="keyword">if</span> (!<span class="keyword">sender</span>) {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">'Please register first!'</span> });
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="comment">// Step 2: Find recipient</span>
+    <span class="keyword">const</span> <span class="keyword">recipient</span> = <span class="function">Object</span>.<span class="function">values</span>(<span class="keyword">users</span>).<span class="function">find</span>(<span class="keyword">user</span> => <span class="keyword">user</span>.<span class="keyword">username</span> === <span class="keyword">to</span>);
+    
+    <span class="comment">// Step 3: Check if recipient exists and is online</span>
+    <span class="keyword">if</span> (!<span class="keyword">recipient</span>) {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">`User ${to} not found or not online`</span> });
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="comment">// Step 4: Send message to recipient</span>
+    <span class="function">io</span>.<span class="function">to</span>(<span class="keyword">recipient</span>.<span class="keyword">id</span>).<span class="function">emit</span>(<span class="string">'private message'</span>, {
+        <span class="keyword">from</span>: <span class="keyword">sender</span>.<span class="keyword">username</span>,
+        <span class="keyword">message</span>: <span class="keyword">message</span>,
+        <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    });
+    
+    <span class="comment">// Step 5: Confirm delivery to sender</span>
+    <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'private message sent'</span>, {
+        <span class="keyword">to</span>: <span class="keyword">to</span>,
+        <span class="keyword">message</span>: <span class="keyword">message</span>,
+        <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    });
+});</code>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🎯 Practice Exercise</h3>
+                <p>Test the private messaging system:</p>
+                
+                <div class="demo-section">
+                    <h4>Private Chat Test</h4>
+                    <p>Try these scenarios:</p>
+                    <ol style="margin: 15px 0; color: #666;">
+                        <li>Open multiple browser tabs and register different users</li>
+                        <li>Send private messages between users</li>
+                        <li>Try sending to a user that doesn't exist</li>
+                        <li>Close a tab and try sending to that user</li>
+                        <li>Observe message delivery confirmations</li>
+                    </ol>
+                    <div class="messages" id="testMessages"></div>
+                    <button class="btn btn-secondary" onclick="clearTestMessages()">Clear Messages</button>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>✅ What You've Learned</h3>
+                <ul>
+                    <li>✅ How to send private messages between users</li>
+                    <li>✅ User lookup and recipient targeting</li>
+                    <li>✅ Message delivery confirmation</li>
+                    <li>✅ Error handling for offline users</li>
+                    <li>✅ Building a complete private chat interface</li>
+                </ul>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/lesson5" class="btn">Next Lesson: Group Chat (Rooms) →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const usersList = document.getElementById('usersList');
+        const recipientSelect = document.getElementById('recipient');
+        const chatMessages = document.getElementById('chatMessages');
+        const demoMessages = document.getElementById('demoMessages');
+        const testMessages = document.getElementById('testMessages');
+        const registrationStatus = document.getElementById('registrationStatus');
+
+        let currentUser = null;
+        let users = [];
+
+        // Connection status handling
+        socket.on('connect', () => {
+            console.log('✅ Connected to Socket.IO server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from Socket.IO server');
+        });
+
+        // User registration handling
+        socket.on('user registered', (data) => {
+            currentUser = data.username;
+            addMessage('system', data.message, demoMessages);
+            addMessage('system', data.message, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #28a745; margin-top: 10px;">✅ ${data.message}</div>`;
+        });
+
+        // Users list updates
+        socket.on('users list', (usersData) => {
+            users = usersData;
+            updateUsersList();
+            updateRecipientSelect();
+        });
+
+        // User join/leave notifications
+        socket.on('user joined', (data) => {
+            addMessage('system', data.message, demoMessages);
+            addMessage('system', data.message, testMessages);
+        });
+
+        socket.on('user left', (data) => {
+            addMessage('system', data.message, demoMessages);
+            addMessage('system', data.message, testMessages);
+        });
+
+        // Private message handling
+        socket.on('private message', (data) => {
+            const { from, message, timestamp } = data;
+            const time = new Date(timestamp).toLocaleTimeString();
+            
+            displayPrivateMessage(from, message, timestamp, 'received');
+            addMessage('private', `[${time}] From ${from}: ${message}`, demoMessages);
+            addMessage('private', `[${time}] From ${from}: ${message}`, testMessages);
+        });
+
+        socket.on('private message sent', (data) => {
+            const { to, message, timestamp } = data;
+            const time = new Date(timestamp).toLocaleTimeString();
+            
+            displayPrivateMessage(to, message, timestamp, 'sent');
+            addMessage('private', `[${time}] To ${to}: ${message}`, demoMessages);
+            addMessage('private', `[${time}] To ${to}: ${message}`, testMessages);
+        });
+
+        // Error handling
+        socket.on('error', (data) => {
+            addMessage('error', `Error: ${data.message}`, demoMessages);
+            addMessage('error', `Error: ${data.message}`, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ ${data.message}</div>`;
+        });
+
+        // Function to register user
+        function registerUser() {
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                socket.emit('register user', { username: username });
+                addMessage('sent', `Registering as: ${username}`, demoMessages);
+            } else {
+                registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ Please enter a username</div>`;
+            }
+        }
+
+        // Function to send private message
+        function sendPrivateMessage() {
+            const recipient = document.getElementById('recipient').value;
+            const message = document.getElementById('privateMessage').value.trim();
+            
+            if (!recipient) {
+                addMessage('error', 'Please select a recipient', demoMessages);
+                return;
+            }
+            
+            if (!message) {
+                addMessage('error', 'Please enter a message', demoMessages);
+                return;
+            }
+            
+            socket.emit('private message', { to: recipient, message: message });
+            document.getElementById('privateMessage').value = '';
+        }
+
+        // Function to update users list
+        function updateUsersList() {
+            if (users.length === 0) {
+                usersList.innerHTML = '<p style="color: #666; text-align: center;">No users online</p>';
+                return;
+            }
+
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                if (user.username !== currentUser) {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.innerHTML = `
+                        <span class="status-indicator"></span>
+                        <strong>${user.username}</strong>
+                    `;
+                    userItem.onclick = () => selectUser(user.username);
+                    usersList.appendChild(userItem);
+                }
+            });
+        }
+
+        // Function to update recipient select
+        function updateRecipientSelect() {
+            recipientSelect.innerHTML = '<option value="">Select recipient...</option>';
+            users.forEach(user => {
+                if (user.username !== currentUser) {
+                    const option = document.createElement('option');
+                    option.value = user.username;
+                    option.textContent = user.username;
+                    recipientSelect.appendChild(option);
+                }
+            });
+        }
+
+        // Function to select user
+        function selectUser(username) {
+            recipientSelect.value = username;
+        }
+
+        // Function to display private message in chat
+        function displayPrivateMessage(user, message, timestamp, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-item ${type}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString();
+            const sender = type === 'sent' ? `To ${user}` : `From ${user}`;
+            
+            messageDiv.innerHTML = `
+                <div class="sender">${sender}</div>
+                <div class="message">${message}</div>
+                <div class="time">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to add messages
+        function addMessage(type, text, container) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Function to clear test messages
+        function clearTestMessages() {
+            testMessages.innerHTML = '';
+        }
+
+        // Handle Enter key in input fields
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registerUser();
+            }
+        });
+
+        document.getElementById('privateMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendPrivateMessage();
+            }
+        });
+
+        // Auto-reconnect handling
+        socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Reconnected after ${attemptNumber} attempts`);
+            if (currentUser) {
+                socket.emit('register user', { username: currentUser });
+            }
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Attempting to reconnect... (${attemptNumber})`);
+        });
+    </script>
+</body>
+</html> 

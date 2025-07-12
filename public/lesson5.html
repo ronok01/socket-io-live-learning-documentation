@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 5: Group Chat (Rooms) - Socket.IO Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .lesson-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .lesson-section h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+            color: #e2e8f0;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .code-block .string {
+            color: #a7f3d0;
+        }
+
+        .code-block .keyword {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .code-block .function {
+            color: #60a5fa;
+        }
+
+        .code-block .number {
+            color: #f472b6;
+        }
+
+        .code-block .operator {
+            color: #e2e8f0;
+        }
+
+        .demo-section {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .demo-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .message.sent {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .message.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.system {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .message.room {
+            background: #e2e3e5;
+            color: #383d41;
+            border-left: 4px solid #6c757d;
+        }
+
+        .message.join {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.leave {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .concept-box {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .concept-box h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .concept-box ul {
+            margin-left: 20px;
+        }
+
+        .concept-box li {
+            margin-bottom: 5px;
+            color: #155724;
+        }
+
+        .chat-interface {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .chat-header {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+
+        .chat-header h4 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .room-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            align-items: end;
+            margin-bottom: 20px;
+        }
+
+        .chat-form {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .chat-messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message-item {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .message-item.sent {
+            background: #d4edda;
+            color: #155724;
+            margin-left: 20%;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message-item.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            margin-right: 20%;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-item.system {
+            background: #fff3cd;
+            color: #856404;
+            text-align: center;
+            margin: 0 10%;
+            font-style: italic;
+        }
+
+        .message-item .sender {
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+
+        .message-item .time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .rooms-panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .rooms-panel h5 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .room-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .room-item:hover {
+            background: #e9ecef;
+        }
+
+        .room-item.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .registration-form {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .registration-form h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-row .input-group {
+            flex: 1;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #28a745;
+            margin-right: 8px;
+        }
+
+        .current-room {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .current-room h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .room-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .room-stat {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .room-stat .number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .room-stat .label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚪 Lesson 5: Group Chat (Rooms)</h1>
+            <p>Create group chat functionality using Socket.IO rooms and advanced features</p>
+        </div>
+
+        <div class="nav">
+            <a href="/">← Back to Learning Hub</a> | 
+            <a href="/lesson4">← Previous Lesson</a>
+        </div>
+
+        <div class="content">
+            <div class="lesson-section">
+                <h3>🎯 What You'll Learn</h3>
+                <p>In this lesson, you'll master group chat functionality:</p>
+                <ul>
+                    <li>How to create and manage chat rooms</li>
+                    <li>Joining and leaving rooms</li>
+                    <li>Room-specific messaging</li>
+                    <li>Multi-room support and room management</li>
+                </ul>
+            </div>
+
+            <div class="concept-box">
+                <h4>🔑 Room Concepts</h4>
+                <ul>
+                    <li><strong>Rooms:</strong> Virtual spaces where users can join and chat together</li>
+                    <li><strong>Room Membership:</strong> Users can be in multiple rooms simultaneously</li>
+                    <li><strong>Room-Specific Events:</strong> Messages sent only to room members</li>
+                    <li><strong>Room Management:</strong> Creating, joining, leaving, and monitoring rooms</li>
+                </ul>
+            </div>
+
+            <div class="registration-form">
+                <h4>👤 User Registration</h4>
+                <p>Register with a username to start using rooms:</p>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" placeholder="Enter your username...">
+                    </div>
+                    <button class="btn btn-success" onclick="registerUser()">Register</button>
+                </div>
+                <div id="registrationStatus"></div>
+            </div>
+
+            <div class="current-room">
+                <h4>🚪 Current Room</h4>
+                <div id="currentRoomInfo">
+                    <p>Not in any room</p>
+                </div>
+                <div class="room-info" id="roomStats" style="display: none;">
+                    <div class="room-stat">
+                        <div class="number" id="roomMembers">0</div>
+                        <div class="label">Members</div>
+                    </div>
+                    <div class="room-stat">
+                        <div class="number" id="roomMessages">0</div>
+                        <div class="label">Messages</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-interface">
+                <div class="chat-header">
+                    <h4>💬 Group Chat Interface</h4>
+                    <p>Join rooms and start group conversations</p>
+                </div>
+
+                <div class="rooms-panel">
+                    <h5>🚪 Available Rooms</h5>
+                    <div id="roomsList">
+                        <p style="color: #666; text-align: center;">No rooms available</p>
+                    </div>
+                </div>
+
+                <div class="room-controls">
+                    <div class="input-group">
+                        <label for="roomName">Room Name:</label>
+                        <input type="text" id="roomName" placeholder="Enter room name...">
+                    </div>
+                    <div class="input-group">
+                        <label for="roomSelect">Or Select:</label>
+                        <select id="roomSelect">
+                            <option value="">Select a room...</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="joinRoom()">Join Room</button>
+                </div>
+
+                <div class="chat-form">
+                    <div class="input-group">
+                        <label for="roomMessage">Message:</label>
+                        <input type="text" id="roomMessage" placeholder="Type your message...">
+                    </div>
+                    <button class="btn" onclick="sendRoomMessage()">Send</button>
+                </div>
+
+                <div class="chat-messages" id="chatMessages"></div>
+
+                <div style="margin-top: 15px;">
+                    <button class="btn btn-danger" onclick="leaveRoom()">Leave Current Room</button>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🚪 Creating and Joining Rooms</h3>
+                <p>Learn how to create rooms and manage room membership:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Join a room</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'join room'</span>, { <span class="keyword">roomName</span>: <span class="string">'general'</span> });
+
+<span class="comment">// Server-side: Handle room joining</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'join room'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">roomName</span> } = <span class="keyword">data</span>;
+    <span class="keyword">const</span> <span class="keyword">user</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    
+    <span class="keyword">if</span> (!<span class="keyword">user</span>) {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">'Please register first!'</span> });
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="comment">// Join the room</span>
+    <span class="function">socket</span>.<span class="function">join</span>(<span class="keyword">roomName</span>);
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">`${user.username} joined room: ${roomName}`</span>);
+    
+    <span class="comment">// Notify room members</span>
+    <span class="function">io</span>.<span class="function">to</span>(<span class="keyword">roomName</span>).<span class="function">emit</span>(<span class="string">'room message'</span>, {
+        <span class="keyword">type</span>: <span class="string">'join'</span>,
+        <span class="keyword">user</span>: <span class="keyword">user</span>.<span class="keyword">username</span>,
+        <span class="keyword">room</span>: <span class="keyword">roomName</span>,
+        <span class="keyword">message</span>: <span class="string">`${user.username} joined the room`</span>,
+        <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    });
+    
+    <span class="comment">// Send confirmation to user</span>
+    <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'room joined'</span>, {
+        <span class="keyword">room</span>: <span class="keyword">roomName</span>,
+        <span class="keyword">message</span>: <span class="string">`You joined room: ${roomName}`</span>
+    });
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Room Management Demo</h4>
+                    <p>Try these scenarios:</p>
+                    <ul style="margin: 15px 0; color: #666;">
+                        <li>Create a new room by entering a room name</li>
+                        <li>Join existing rooms from the dropdown</li>
+                        <li>Send messages in different rooms</li>
+                        <li>Switch between rooms</li>
+                    </ul>
+                    <div class="messages" id="demoMessages"></div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>💬 Room Messaging</h3>
+                <p>Understanding how messages are sent to room members:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Send a room message</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'room message'</span>, {
+    <span class="keyword">roomName</span>: <span class="string">'general'</span>,
+    <span class="keyword">message</span>: <span class="string">'Hello everyone in this room!'</span>
+});
+
+<span class="comment">// Server-side: Handle room messaging</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'room message'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">roomName</span>, <span class="keyword">message</span> } = <span class="keyword">data</span>;
+    <span class="keyword">const</span> <span class="keyword">user</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    
+    <span class="keyword">if</span> (!<span class="keyword">user</span>) {
+        <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'error'</span>, { <span class="keyword">message</span>: <span class="string">'Please register first!'</span> });
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">`Room message in ${roomName} from ${user.username}: ${message}`</span>);
+    
+    <span class="comment">// Send message to all users in the room</span>
+    <span class="function">io</span>.<span class="function">to</span>(<span class="keyword">roomName</span>).<span class="function">emit</span>(<span class="string">'room message'</span>, {
+        <span class="keyword">type</span>: <span class="string">'message'</span>,
+        <span class="keyword">user</span>: <span class="keyword">user</span>.<span class="keyword">username</span>,
+        <span class="keyword">room</span>: <span class="keyword">roomName</span>,
+        <span class="keyword">message</span>: <span class="keyword">message</span>,
+        <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    });
+});</code>
+                </div>
+
+                <div class="concept-box">
+                    <h4>💡 Room Messaging Best Practices</h4>
+                    <ul>
+                        <li><strong>Room Validation:</strong> Check if user is in the room before sending</li>
+                        <li><strong>Message Types:</strong> Use different types for joins, leaves, and messages</li>
+                        <li><strong>Room Cleanup:</strong> Handle room cleanup when users leave</li>
+                        <li><strong>Room Limits:</strong> Consider limiting room size for performance</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🚪 Leaving Rooms</h3>
+                <p>Learn how to properly leave rooms and handle cleanup:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Leave a room</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'leave room'</span>, { <span class="keyword">roomName</span>: <span class="string">'general'</span> });
+
+<span class="comment">// Server-side: Handle room leaving</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'leave room'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">roomName</span> } = <span class="keyword">data</span>;
+    <span class="keyword">const</span> <span class="keyword">user</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    
+    <span class="keyword">if</span> (<span class="keyword">user</span>) {
+        <span class="comment">// Leave the room</span>
+        <span class="function">socket</span>.<span class="function">leave</span>(<span class="keyword">roomName</span>);
+        <span class="function">console</span>.<span class="function">log</span>(<span class="string">`${user.username} left room: ${roomName}`</span>);
+        
+        <span class="comment">// Notify remaining room members</span>
+        <span class="function">io</span>.<span class="function">to</span>(<span class="keyword">roomName</span>).<span class="function">emit</span>(<span class="string">'room message'</span>, {
+            <span class="keyword">type</span>: <span class="string">'leave'</span>,
+            <span class="keyword">user</span>: <span class="keyword">user</span>.<span class="keyword">username</span>,
+            <span class="keyword">room</span>: <span class="keyword">roomName</span>,
+            <span class="keyword">message</span>: <span class="string">`${user.username} left the room`</span>,
+            <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+        });
+    }
+});</code>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🎯 Practice Exercise</h3>
+                <p>Test the group chat system:</p>
+                
+                <div class="demo-section">
+                    <h4>Group Chat Test</h4>
+                    <p>Try these scenarios:</p>
+                    <ol style="margin: 15px 0; color: #666;">
+                        <li>Open multiple browser tabs and register different users</li>
+                        <li>Create a room and have multiple users join</li>
+                        <li>Send messages in the room and see them appear for all members</li>
+                        <li>Have some users leave and rejoin the room</li>
+                        <li>Create multiple rooms and switch between them</li>
+                    </ol>
+                    <div class="messages" id="testMessages"></div>
+                    <button class="btn btn-secondary" onclick="clearTestMessages()">Clear Messages</button>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>✅ What You've Learned</h3>
+                <ul>
+                    <li>✅ How to create and manage chat rooms</li>
+                    <li>✅ Joining and leaving rooms</li>
+                    <li>✅ Room-specific messaging</li>
+                    <li>✅ Multi-room support</li>
+                    <li>✅ Room membership tracking</li>
+                </ul>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/lesson6" class="btn">Next Lesson: Advanced Features →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const roomsList = document.getElementById('roomsList');
+        const roomSelect = document.getElementById('roomSelect');
+        const chatMessages = document.getElementById('chatMessages');
+        const demoMessages = document.getElementById('demoMessages');
+        const testMessages = document.getElementById('testMessages');
+        const registrationStatus = document.getElementById('registrationStatus');
+        const currentRoomInfo = document.getElementById('currentRoomInfo');
+        const roomStats = document.getElementById('roomStats');
+
+        let currentUser = null;
+        let currentRoom = null;
+        let users = [];
+        let rooms = ['general', 'random', 'help', 'off-topic'];
+        let roomMembers = {};
+        let messageCount = 0;
+
+        // Connection status handling
+        socket.on('connect', () => {
+            console.log('✅ Connected to Socket.IO server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from Socket.IO server');
+        });
+
+        // User registration handling
+        socket.on('user registered', (data) => {
+            currentUser = data.username;
+            addMessage('system', data.message, demoMessages);
+            addMessage('system', data.message, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #28a745; margin-top: 10px;">✅ ${data.message}</div>`;
+        });
+
+        // Room joining handling
+        socket.on('room joined', (data) => {
+            currentRoom = data.room;
+            updateCurrentRoomInfo();
+            addMessage('system', data.message, demoMessages);
+            addMessage('system', data.message, testMessages);
+            addMessage('system', data.message, chatMessages);
+        });
+
+        // Room message handling
+        socket.on('room message', (data) => {
+            const { type, user, room, message, timestamp } = data;
+            const time = new Date(timestamp).toLocaleTimeString();
+            
+            if (type === 'message') {
+                messageCount++;
+                updateRoomStats();
+                
+                if (room === currentRoom) {
+                    displayRoomMessage(user, message, timestamp, user === currentUser ? 'sent' : 'received');
+                }
+                
+                addMessage('room', `[${time}] ${user} in ${room}: ${message}`, demoMessages);
+                addMessage('room', `[${time}] ${user} in ${room}: ${message}`, testMessages);
+            } else if (type === 'join') {
+                if (room === currentRoom) {
+                    addMessage('join', `${user} joined the room`, chatMessages);
+                }
+                addMessage('join', `${user} joined ${room}`, demoMessages);
+                addMessage('join', `${user} joined ${room}`, testMessages);
+            } else if (type === 'leave') {
+                if (room === currentRoom) {
+                    addMessage('leave', `${user} left the room`, chatMessages);
+                }
+                addMessage('leave', `${user} left ${room}`, demoMessages);
+                addMessage('leave', `${user} left ${room}`, testMessages);
+            }
+        });
+
+        // Users list updates
+        socket.on('users list', (usersData) => {
+            users = usersData;
+            updateRoomsList();
+        });
+
+        // Error handling
+        socket.on('error', (data) => {
+            addMessage('system', `Error: ${data.message}`, demoMessages);
+            addMessage('system', `Error: ${data.message}`, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ ${data.message}</div>`;
+        });
+
+        // Function to register user
+        function registerUser() {
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                socket.emit('register user', { username: username });
+                addMessage('sent', `Registering as: ${username}`, demoMessages);
+            } else {
+                registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ Please enter a username</div>`;
+            }
+        }
+
+        // Function to join room
+        function joinRoom() {
+            const roomName = document.getElementById('roomName').value.trim() || document.getElementById('roomSelect').value;
+            
+            if (!roomName) {
+                addMessage('system', 'Please enter or select a room name', demoMessages);
+                return;
+            }
+            
+            if (!currentUser) {
+                addMessage('system', 'Please register first', demoMessages);
+                return;
+            }
+            
+            socket.emit('join room', { roomName: roomName });
+            addMessage('sent', `Joining room: ${roomName}`, demoMessages);
+            
+            // Add room to list if it's new
+            if (!rooms.includes(roomName)) {
+                rooms.push(roomName);
+                updateRoomsList();
+            }
+            
+            document.getElementById('roomName').value = '';
+            document.getElementById('roomSelect').value = '';
+        }
+
+        // Function to leave room
+        function leaveRoom() {
+            if (!currentRoom) {
+                addMessage('system', 'You are not in any room', demoMessages);
+                return;
+            }
+            
+            socket.emit('leave room', { roomName: currentRoom });
+            addMessage('sent', `Leaving room: ${currentRoom}`, demoMessages);
+            
+            currentRoom = null;
+            updateCurrentRoomInfo();
+            chatMessages.innerHTML = '';
+            messageCount = 0;
+            updateRoomStats();
+        }
+
+        // Function to send room message
+        function sendRoomMessage() {
+            const message = document.getElementById('roomMessage').value.trim();
+            
+            if (!currentRoom) {
+                addMessage('system', 'Please join a room first', demoMessages);
+                return;
+            }
+            
+            if (!message) {
+                addMessage('system', 'Please enter a message', demoMessages);
+                return;
+            }
+            
+            socket.emit('room message', { roomName: currentRoom, message: message });
+            document.getElementById('roomMessage').value = '';
+        }
+
+        // Function to update rooms list
+        function updateRoomsList() {
+            roomsList.innerHTML = '';
+            rooms.forEach(room => {
+                const roomItem = document.createElement('div');
+                roomItem.className = 'room-item';
+                if (room === currentRoom) {
+                    roomItem.classList.add('active');
+                }
+                roomItem.innerHTML = `
+                    <span class="status-indicator"></span>
+                    <strong>#${room}</strong>
+                `;
+                roomItem.onclick = () => {
+                    document.getElementById('roomName').value = room;
+                    joinRoom();
+                };
+                roomsList.appendChild(roomItem);
+            });
+            
+            // Update select dropdown
+            roomSelect.innerHTML = '<option value="">Select a room...</option>';
+            rooms.forEach(room => {
+                const option = document.createElement('option');
+                option.value = room;
+                option.textContent = `#${room}`;
+                roomSelect.appendChild(option);
+            });
+        }
+
+        // Function to update current room info
+        function updateCurrentRoomInfo() {
+            if (currentRoom) {
+                currentRoomInfo.innerHTML = `
+                    <h5>Currently in: #${currentRoom}</h5>
+                    <p>You can send messages to all members of this room</p>
+                `;
+                roomStats.style.display = 'grid';
+            } else {
+                currentRoomInfo.innerHTML = '<p>Not in any room</p>';
+                roomStats.style.display = 'none';
+            }
+        }
+
+        // Function to update room stats
+        function updateRoomStats() {
+            document.getElementById('roomMembers').textContent = users.length;
+            document.getElementById('roomMessages').textContent = messageCount;
+        }
+
+        // Function to display room message in chat
+        function displayRoomMessage(user, message, timestamp, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-item ${type}`;
+            
+            const time = new Date(timestamp).toLocaleTimeString();
+            const sender = type === 'sent' ? 'You' : user;
+            
+            messageDiv.innerHTML = `
+                <div class="sender">${sender}</div>
+                <div class="message">${message}</div>
+                <div class="time">${time}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Function to add messages
+        function addMessage(type, text, container) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Function to clear test messages
+        function clearTestMessages() {
+            testMessages.innerHTML = '';
+        }
+
+        // Handle Enter key in input fields
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registerUser();
+            }
+        });
+
+        document.getElementById('roomName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                joinRoom();
+            }
+        });
+
+        document.getElementById('roomMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendRoomMessage();
+            }
+        });
+
+        // Auto-reconnect handling
+        socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Reconnected after ${attemptNumber} attempts`);
+            if (currentUser) {
+                socket.emit('register user', { username: currentUser });
+                if (currentRoom) {
+                    socket.emit('join room', { roomName: currentRoom });
+                }
+            }
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Attempting to reconnect... (${attemptNumber})`);
+        });
+
+        // Initialize rooms list
+        updateRoomsList();
+    </script>
+</body>
+</html> 

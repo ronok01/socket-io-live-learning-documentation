@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 1: Basic Events - Socket.IO Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .lesson-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .lesson-section h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+            color: #e2e8f0;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .code-block .string {
+            color: #a7f3d0;
+        }
+
+        .code-block .keyword {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .code-block .function {
+            color: #60a5fa;
+        }
+
+        .code-block .number {
+            color: #f472b6;
+        }
+
+        .code-block .operator {
+            color: #e2e8f0;
+        }
+
+        .demo-section {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .demo-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .message.sent {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .message.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.system {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .connection-status.connected {
+            background: #28a745;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .concept-box {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .concept-box h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .concept-box ul {
+            margin-left: 20px;
+        }
+
+        .concept-box li {
+            margin-bottom: 5px;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📚 Lesson 1: Basic Events</h1>
+            <p>Learn Socket.IO fundamentals: connections, events, and basic communication</p>
+        </div>
+
+        <div class="nav">
+            <a href="/">← Back to Learning Hub</a>
+        </div>
+
+        <div class="content">
+            <div class="lesson-section">
+                <h3>🎯 What You'll Learn</h3>
+                <p>In this lesson, you'll understand the core concepts of Socket.IO:</p>
+                <ul>
+                    <li>How to establish a connection between client and server</li>
+                    <li>Basic event emission and listening</li>
+                    <li>One-to-one communication patterns</li>
+                    <li>Connection status handling</li>
+                </ul>
+            </div>
+
+            <div class="concept-box">
+                <h4>🔑 Key Concepts</h4>
+                <ul>
+                    <li><strong>Socket Connection:</strong> A persistent connection between client and server</li>
+                    <li><strong>Events:</strong> Messages sent between client and server</li>
+                    <li><strong>Emit:</strong> Sending a message (client → server or server → client)</li>
+                    <li><strong>Listen:</strong> Receiving a message (using .on() method)</li>
+                    <li><strong>Socket ID:</strong> Unique identifier for each connection</li>
+                </ul>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🔌 Connection Status</h3>
+                <p>Monitor your connection to the Socket.IO server:</p>
+                <div class="demo-section">
+                    <h4>Connection Status</h4>
+                    <div>
+                        <span class="connection-status" id="connectionStatus"></span>
+                        <span id="connectionText">Connecting...</span>
+                    </div>
+                    <div style="margin-top: 10px;">
+                        <strong>Socket ID:</strong> <span id="socketId">Not connected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>📤 Sending Your First Message</h3>
+                <p>Learn how to send a message to the server and receive a response:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side code (what you're using now)</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'hello'</span>, { <span class="keyword">message</span>: <span class="string">'Hello Server!'</span> });
+
+<span class="comment">// Server-side code (running on the server)</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'hello'</span>, (<span class="keyword">data</span>) => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Received:'</span>, <span class="keyword">data</span>.<span class="keyword">message</span>);
+    <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'hello response'</span>, {
+        <span class="keyword">message</span>: <span class="string">`Server received: ${data.message}`</span>,
+        <span class="keyword">timestamp</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    });
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Try It Out</h4>
+                    <div class="input-group">
+                        <label for="helloMessage">Message to send:</label>
+                        <input type="text" id="helloMessage" placeholder="Type your message here..." value="Hello Server!">
+                    </div>
+                    <button class="btn" onclick="sendHello()">Send Message</button>
+                    <div class="messages" id="helloMessages"></div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>📥 Receiving Messages</h3>
+                <p>Understanding how to listen for and handle incoming messages:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Listening for messages from the server</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'hello response'</span>, (<span class="keyword">data</span>) => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Server response:'</span>, <span class="keyword">data</span>);
+    <span class="comment">// Handle the response here</span>
+});
+
+<span class="comment">// Listening for connection events</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'connect'</span>, () => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Connected to server!'</span>);
+});
+
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'disconnect'</span>, () => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Disconnected from server!'</span>);
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Message Log</h4>
+                    <p>All incoming messages will appear here:</p>
+                    <div class="messages" id="messageLog"></div>
+                    <button class="btn btn-secondary" onclick="clearMessages()">Clear Messages</button>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🔍 Understanding the Code</h3>
+                <p>Let's break down what's happening:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// 1. Create a socket connection</span>
+<span class="keyword">const</span> <span class="function">socket</span> = <span class="function">io</span>();
+
+<span class="comment">// 2. Listen for connection events</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'connect'</span>, () => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Connected!'</span>);
+});
+
+<span class="comment">// 3. Send a message to the server</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'eventName'</span>, { <span class="keyword">data</span>: <span class="string">'value'</span> });
+
+<span class="comment">// 4. Listen for responses from the server</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'responseEvent'</span>, (<span class="keyword">data</span>) => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'Received:'</span>, <span class="keyword">data</span>);
+});</code>
+                </div>
+
+                <div class="concept-box">
+                    <h4>💡 Important Notes</h4>
+                    <ul>
+                        <li><strong>Event Names:</strong> You can use any string as an event name</li>
+                        <li><strong>Data Format:</strong> You can send any JSON-serializable data</li>
+                        <li><strong>Bidirectional:</strong> Both client and server can emit and listen</li>
+                        <li><strong>Real-time:</strong> Messages are delivered instantly</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🎯 Practice Exercise</h3>
+                <p>Try sending different types of messages and observe the responses:</p>
+                
+                <div class="demo-section">
+                    <h4>Interactive Testing</h4>
+                    <div class="input-group">
+                        <label for="testMessage">Test Message:</label>
+                        <input type="text" id="testMessage" placeholder="Try: 'Hello World', 'Test Message', etc.">
+                    </div>
+                    <button class="btn" onclick="sendTestMessage()">Send Test Message</button>
+                    <p style="margin-top: 15px; font-size: 0.9rem; color: #666;">
+                        💡 Try opening multiple browser tabs to see how each connection gets a unique Socket ID!
+                    </p>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>✅ What You've Learned</h3>
+                <ul>
+                    <li>✅ How to establish a Socket.IO connection</li>
+                    <li>✅ How to send messages using <code>socket.emit()</code></li>
+                    <li>✅ How to receive messages using <code>socket.on()</code></li>
+                    <li>✅ How to handle connection and disconnection events</li>
+                    <li>✅ Understanding of Socket IDs and event-based communication</li>
+                </ul>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/lesson2" class="btn">Next Lesson: Broadcasting →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const socketId = document.getElementById('socketId');
+        const helloMessages = document.getElementById('helloMessages');
+        const messageLog = document.getElementById('messageLog');
+
+        // Connection status handling
+        socket.on('connect', () => {
+            connectionStatus.classList.add('connected');
+            connectionText.textContent = 'Connected to server';
+            socketId.textContent = socket.id;
+            addMessage('system', 'Connected to Socket.IO server!');
+        });
+
+        socket.on('disconnect', () => {
+            connectionStatus.classList.remove('connected');
+            connectionText.textContent = 'Disconnected from server';
+            socketId.textContent = 'Not connected';
+            addMessage('system', 'Disconnected from server');
+        });
+
+        socket.on('connect_error', (error) => {
+            connectionStatus.classList.remove('connected');
+            connectionText.textContent = 'Connection failed';
+            addMessage('system', 'Connection failed: ' + error.message);
+        });
+
+        // Listen for hello response
+        socket.on('hello response', (data) => {
+            addMessage('received', `Server: ${data.message} (${new Date(data.timestamp).toLocaleTimeString()})`);
+        });
+
+        // Listen for user count updates
+        socket.on('user count', (count) => {
+            addMessage('system', `Users online: ${count}`);
+        });
+
+        // Function to send hello message
+        function sendHello() {
+            const message = document.getElementById('helloMessage').value;
+            if (message.trim()) {
+                socket.emit('hello', { message: message });
+                addMessage('sent', `You: ${message}`);
+                document.getElementById('helloMessage').value = '';
+            }
+        }
+
+        // Function to send test message
+        function sendTestMessage() {
+            const message = document.getElementById('testMessage').value;
+            if (message.trim()) {
+                socket.emit('hello', { message: message });
+                addMessage('sent', `Test: ${message}`);
+                document.getElementById('testMessage').value = '';
+            }
+        }
+
+        // Function to add messages to the log
+        function addMessage(type, text) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            
+            // Add to both logs
+            messageLog.appendChild(messageDiv.cloneNode(true));
+            if (type === 'received' && text.includes('Server:')) {
+                helloMessages.appendChild(messageDiv);
+            }
+            
+            // Auto-scroll to bottom
+            messageLog.scrollTop = messageLog.scrollHeight;
+            helloMessages.scrollTop = helloMessages.scrollHeight;
+        }
+
+        // Function to clear messages
+        function clearMessages() {
+            messageLog.innerHTML = '';
+            helloMessages.innerHTML = '';
+        }
+
+        // Handle Enter key in input fields
+        document.getElementById('helloMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendHello();
+            }
+        });
+
+        document.getElementById('testMessage').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendTestMessage();
+            }
+        });
+
+        // Auto-reconnect handling
+        socket.on('reconnect', (attemptNumber) => {
+            addMessage('system', `Reconnected after ${attemptNumber} attempts`);
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            addMessage('system', `Attempting to reconnect... (${attemptNumber})`);
+        });
+    </script>
+</body>
+</html> 

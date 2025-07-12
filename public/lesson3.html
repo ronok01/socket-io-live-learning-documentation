@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lesson 3: User Management - Socket.IO Learning</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .nav {
+            background: #f8f9fa;
+            padding: 15px 30px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .lesson-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .lesson-section h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+        }
+
+        .lesson-section p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .code-block {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 25px;
+            border-radius: 12px;
+            font-family: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+            margin: 20px 0;
+            overflow-x: auto;
+            border: 1px solid #334155;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .code-block::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 12px 12px 0 0;
+        }
+
+        .code-block code {
+            display: block;
+            white-space: pre;
+            color: #e2e8f0;
+        }
+
+        .code-block .comment {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .code-block .string {
+            color: #a7f3d0;
+        }
+
+        .code-block .keyword {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .code-block .function {
+            color: #60a5fa;
+        }
+
+        .code-block .number {
+            color: #f472b6;
+        }
+
+        .code-block .operator {
+            color: #e2e8f0;
+        }
+
+        .demo-section {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .demo-section h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-success {
+            background: #28a745;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .messages {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+        }
+
+        .message {
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+
+        .message.sent {
+            background: #d4edda;
+            color: #155724;
+            border-left: 4px solid #28a745;
+        }
+
+        .message.received {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.system {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .message.join {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .message.leave {
+            background: #f8d7da;
+            color: #721c24;
+            border-left: 4px solid #dc3545;
+        }
+
+        .concept-box {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .concept-box h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .concept-box ul {
+            margin-left: 20px;
+        }
+
+        .concept-box li {
+            margin-bottom: 5px;
+            color: #155724;
+        }
+
+        .user-status {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+
+        .user-status h4 {
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .user-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .user-card {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .user-card h5 {
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+
+        .user-card .status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #28a745;
+            margin-right: 5px;
+        }
+
+        .users-list {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .user-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .registration-form {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .registration-form h4 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-row .input-group {
+            flex: 1;
+        }
+
+        .connection-status {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #dc3545;
+            margin-right: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .connection-status.connected {
+            background: #28a745;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 Lesson 3: User Management</h1>
+            <p>Learn how to manage users, track connections, and handle user states</p>
+        </div>
+
+        <div class="nav">
+            <a href="/">← Back to Learning Hub</a> | 
+            <a href="/lesson2">← Previous Lesson</a>
+        </div>
+
+        <div class="content">
+            <div class="lesson-section">
+                <h3>🎯 What You'll Learn</h3>
+                <p>In this lesson, you'll master user management in Socket.IO:</p>
+                <ul>
+                    <li>How to register and track users</li>
+                    <li>Managing user connections and disconnections</li>
+                    <li>User presence indicators</li>
+                    <li>Handling user states and data</li>
+                </ul>
+            </div>
+
+            <div class="concept-box">
+                <h4>🔑 User Management Concepts</h4>
+                <ul>
+                    <li><strong>User Registration:</strong> Associating usernames with socket connections</li>
+                    <li><strong>Connection Tracking:</strong> Monitoring who's online and who's not</li>
+                    <li><strong>User States:</strong> Storing user data and connection status</li>
+                    <li><strong>Presence Indicators:</strong> Showing who's currently online</li>
+                </ul>
+            </div>
+
+            <div class="registration-form">
+                <h4>👤 User Registration</h4>
+                <p>Register with a username to start managing users:</p>
+                <div class="form-row">
+                    <div class="input-group">
+                        <label for="username">Username:</label>
+                        <input type="text" id="username" placeholder="Enter your username...">
+                    </div>
+                    <button class="btn btn-success" onclick="registerUser()">Register</button>
+                </div>
+                <div id="registrationStatus"></div>
+            </div>
+
+            <div class="user-status">
+                <h4>👥 Online Users</h4>
+                <div class="user-info">
+                    <div class="user-card">
+                        <h5>Total Users</h5>
+                        <div class="count" id="totalUsers">0</div>
+                    </div>
+                    <div class="user-card">
+                        <h5>Your Status</h5>
+                        <div id="myStatus">Not registered</div>
+                    </div>
+                </div>
+                <div class="users-list" id="usersList">
+                    <p style="text-align: center; color: #666;">No users online</p>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>📝 User Registration Process</h3>
+                <p>Learn how users register and get tracked by the server:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Client-side: Register a user</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'register user'</span>, { <span class="keyword">username</span>: <span class="string">'JohnDoe'</span> });
+
+<span class="comment">// Server-side: Handle user registration</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'register user'</span>, (<span class="keyword">data</span>) => {
+    <span class="keyword">const</span> { <span class="keyword">username</span> } = <span class="keyword">data</span>;
+    
+    <span class="comment">// Store user information</span>
+    <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>] = {
+        <span class="keyword">id</span>: <span class="function">socket</span>.<span class="keyword">id</span>,
+        <span class="keyword">username</span>: <span class="keyword">username</span>,
+        <span class="keyword">joinedAt</span>: <span class="keyword">new</span> <span class="function">Date</span>().<span class="function">toISOString</span>()
+    };
+    
+    <span class="comment">// Send confirmation to user</span>
+    <span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'user registered'</span>, {
+        <span class="keyword">username</span>: <span class="keyword">username</span>,
+        <span class="keyword">message</span>: <span class="string">`Welcome ${username}!`</span>
+    });
+    
+    <span class="comment">// Notify other users</span>
+    <span class="function">socket</span>.<span class="function">broadcast</span>.<span class="function">emit</span>(<span class="string">'user joined'</span>, {
+        <span class="keyword">username</span>: <span class="keyword">username</span>,
+        <span class="keyword">message</span>: <span class="string">`${username} joined the chat!`</span>
+    });
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Registration Demo</h4>
+                    <p>Try registering with different usernames and observe:</p>
+                    <ul style="margin: 15px 0; color: #666;">
+                        <li>How the user list updates</li>
+                        <li>Welcome messages for new users</li>
+                        <li>Notifications when users join</li>
+                    </ul>
+                    <div class="messages" id="registrationMessages"></div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🔍 Connection Tracking</h3>
+                <p>Understanding how the server tracks user connections:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Server-side: Track connections</span>
+<span class="function">io</span>.<span class="function">on</span>(<span class="string">'connection'</span>, (<span class="function">socket</span>) => {
+    <span class="function">console</span>.<span class="function">log</span>(<span class="string">'User connected:'</span>, <span class="function">socket</span>.<span class="keyword">id</span>);
+    <span class="keyword">userCount</span>++;
+    
+    <span class="comment">// Broadcast updated user count</span>
+    <span class="function">io</span>.<span class="function">emit</span>(<span class="string">'user count'</span>, <span class="keyword">userCount</span>);
+});
+
+<span class="comment">// Handle disconnections</span>
+<span class="function">socket</span>.<span class="function">on</span>(<span class="string">'disconnect'</span>, () => {
+    <span class="keyword">const</span> <span class="keyword">user</span> = <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    <span class="keyword">if</span> (<span class="keyword">user</span>) {
+        <span class="comment">// Notify others that user left</span>
+        <span class="function">socket</span>.<span class="function">broadcast</span>.<span class="function">emit</span>(<span class="string">'user left'</span>, {
+            <span class="keyword">username</span>: <span class="keyword">user</span>.<span class="keyword">username</span>,
+            <span class="keyword">message</span>: <span class="string">`${user.username} left the chat`</span>
+        });
+        
+        <span class="comment">// Remove user from tracking</span>
+        <span class="keyword">delete</span> <span class="keyword">users</span>[<span class="function">socket</span>.<span class="keyword">id</span>];
+    }
+    
+    <span class="keyword">userCount</span>--;
+    <span class="function">io</span>.<span class="function">emit</span>(<span class="string">'user count'</span>, <span class="keyword">userCount</span>);
+});</code>
+                </div>
+
+                <div class="demo-section">
+                    <h4>Connection Tracking Demo</h4>
+                    <p>Open multiple browser tabs and observe:</p>
+                    <ul style="margin: 15px 0; color: #666;">
+                        <li>User count changes as tabs open/close</li>
+                        <li>Join/leave notifications</li>
+                        <li>Real-time user list updates</li>
+                    </ul>
+                    <div class="messages" id="connectionMessages"></div>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>👤 User Data Management</h3>
+                <p>Learn how to store and manage user information:</p>
+                
+                <div class="code-block">
+                    <code><span class="comment">// Server-side: User data structure</span>
+<span class="keyword">let</span> <span class="keyword">users</span> = {
+    <span class="string">'socket-id-1'</span>: {
+        <span class="keyword">id</span>: <span class="string">'socket-id-1'</span>,
+        <span class="keyword">username</span>: <span class="string">'JohnDoe'</span>,
+        <span class="keyword">joinedAt</span>: <span class="string">'2024-01-01T10:00:00.000Z'</span>,
+        <span class="keyword">lastSeen</span>: <span class="string">'2024-01-01T10:05:00.000Z'</span>
+    },
+    <span class="string">'socket-id-2'</span>: {
+        <span class="keyword">id</span>: <span class="string">'socket-id-2'</span>,
+        <span class="keyword">username</span>: <span class="string">'JaneSmith'</span>,
+        <span class="keyword">joinedAt</span>: <span class="string">'2024-01-01T10:02:00.000Z'</span>,
+        <span class="keyword">lastSeen</span>: <span class="string">'2024-01-01T10:07:00.000Z'</span>
+    }
+};
+
+<span class="comment">// Send users list to new users</span>
+<span class="function">socket</span>.<span class="function">emit</span>(<span class="string">'users list'</span>, <span class="function">Object</span>.<span class="function">values</span>(<span class="keyword">users</span>));</code>
+                </div>
+
+                <div class="concept-box">
+                    <h4>💡 User Data Best Practices</h4>
+                    <ul>
+                        <li><strong>Unique Identifiers:</strong> Use socket IDs as keys for quick lookup</li>
+                        <li><strong>Username Validation:</strong> Check for duplicate usernames</li>
+                        <li><strong>Data Persistence:</strong> Consider storing user data in a database</li>
+                        <li><strong>Cleanup:</strong> Always remove users on disconnect</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>🎯 Practice Exercise</h3>
+                <p>Test the user management system:</p>
+                
+                <div class="demo-section">
+                    <h4>User Management Test</h4>
+                    <p>Try these scenarios:</p>
+                    <ol style="margin: 15px 0; color: #666;">
+                        <li>Register with a username in one tab</li>
+                        <li>Open another tab and register with a different username</li>
+                        <li>Close one tab and see the user leave notification</li>
+                        <li>Try registering with the same username (should show error)</li>
+                    </ol>
+                    <div class="messages" id="testMessages"></div>
+                    <button class="btn btn-secondary" onclick="clearTestMessages()">Clear Messages</button>
+                </div>
+            </div>
+
+            <div class="lesson-section">
+                <h3>✅ What You've Learned</h3>
+                <ul>
+                    <li>✅ How to register users with usernames</li>
+                    <li>✅ How to track user connections and disconnections</li>
+                    <li>✅ Managing user data and states</li>
+                    <li>✅ Broadcasting user join/leave events</li>
+                    <li>✅ Maintaining a real-time user list</li>
+                </ul>
+                
+                <div style="margin-top: 20px;">
+                    <a href="/lesson4" class="btn">Next Lesson: Private Chat →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const totalUsers = document.getElementById('totalUsers');
+        const myStatus = document.getElementById('myStatus');
+        const usersList = document.getElementById('usersList');
+        const registrationMessages = document.getElementById('registrationMessages');
+        const connectionMessages = document.getElementById('connectionMessages');
+        const testMessages = document.getElementById('testMessages');
+        const registrationStatus = document.getElementById('registrationStatus');
+
+        let currentUser = null;
+        let users = [];
+
+        // Connection status handling
+        socket.on('connect', () => {
+            console.log('✅ Connected to Socket.IO server');
+        });
+
+        socket.on('disconnect', () => {
+            console.log('❌ Disconnected from Socket.IO server');
+        });
+
+        // User registration handling
+        socket.on('user registered', (data) => {
+            currentUser = data.username;
+            myStatus.textContent = `Registered as: ${data.username}`;
+            addMessage('system', data.message, registrationMessages);
+            addMessage('system', data.message, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #28a745; margin-top: 10px;">✅ ${data.message}</div>`;
+        });
+
+        // User join/leave notifications
+        socket.on('user joined', (data) => {
+            addMessage('join', data.message, connectionMessages);
+            addMessage('join', data.message, testMessages);
+        });
+
+        socket.on('user left', (data) => {
+            addMessage('leave', data.message, connectionMessages);
+            addMessage('leave', data.message, testMessages);
+        });
+
+        // Users list updates
+        socket.on('users list', (usersData) => {
+            users = usersData;
+            updateUsersList();
+        });
+
+        // User count updates
+        socket.on('user count', (count) => {
+            totalUsers.textContent = count;
+        });
+
+        // Error handling
+        socket.on('error', (data) => {
+            addMessage('system', `Error: ${data.message}`, testMessages);
+            registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ ${data.message}</div>`;
+        });
+
+        // Function to register user
+        function registerUser() {
+            const username = document.getElementById('username').value.trim();
+            if (username) {
+                socket.emit('register user', { username: username });
+                addMessage('sent', `Registering as: ${username}`, registrationMessages);
+            } else {
+                registrationStatus.innerHTML = `<div style="color: #dc3545; margin-top: 10px;">❌ Please enter a username</div>`;
+            }
+        }
+
+        // Function to update users list
+        function updateUsersList() {
+            if (users.length === 0) {
+                usersList.innerHTML = '<p style="text-align: center; color: #666;">No users online</p>';
+                return;
+            }
+
+            usersList.innerHTML = '';
+            users.forEach(user => {
+                const userItem = document.createElement('div');
+                userItem.className = 'user-item';
+                userItem.innerHTML = `
+                    <span class="status"></span>
+                    <strong>${user.username}</strong>
+                    <small style="color: #666; margin-left: 10px;">
+                        Joined: ${new Date(user.joinedAt).toLocaleTimeString()}
+                    </small>
+                `;
+                usersList.appendChild(userItem);
+            });
+        }
+
+        // Function to add messages
+        function addMessage(type, text, container) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = text;
+            container.appendChild(messageDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Function to clear test messages
+        function clearTestMessages() {
+            testMessages.innerHTML = '';
+        }
+
+        // Handle Enter key in username field
+        document.getElementById('username').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                registerUser();
+            }
+        });
+
+        // Auto-reconnect handling
+        socket.on('reconnect', (attemptNumber) => {
+            console.log(`🔄 Reconnected after ${attemptNumber} attempts`);
+            if (currentUser) {
+                socket.emit('register user', { username: currentUser });
+            }
+        });
+
+        socket.on('reconnect_attempt', (attemptNumber) => {
+            console.log(`🔄 Attempting to reconnect... (${attemptNumber})`);
+        });
+    </script>
+</body>
+</html> 
