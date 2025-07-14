@@ -102,8 +102,8 @@ io.on('connection', (socket) => {
             message: `${username} joined the chat!`
         });
         
-        // Send current users list to the new user
-        socket.emit('users list', Object.values(users));
+        // Send current users list to ALL users (fix: broadcast to all, not just new user)
+        io.emit('users list', Object.values(users));
     });
 
     // ===== LESSON 4: Private Messaging =====
@@ -255,6 +255,8 @@ io.on('connection', (socket) => {
         
         // Update user count for remaining users
         io.emit('user count', userCount);
+        // Send updated users list to ALL users (fix: broadcast to all)
+        io.emit('users list', Object.values(users));
     });
 });
 
